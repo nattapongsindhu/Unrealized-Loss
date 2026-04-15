@@ -1,0 +1,27 @@
+name: Daily Heartbreak Update
+
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: python src/fetch_btc.py
+      - run: python src/generate_heart.py
+      - run: python src/visualize.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/ output/
+          git diff --cached --quiet || git commit -m "daily update $(date +'%Y-%m-%d')"
+          git push
