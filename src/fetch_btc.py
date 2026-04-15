@@ -8,16 +8,15 @@ import yfinance as yf
 import pandas as pd
 import logging
 from pathlib import Path
-from datetime import date
 
 DATA_DIR = Path(__file__).parent.parent / "data"
-BTC_FILE  = DATA_DIR / "btc_prices.csv"
+BTC_FILE = DATA_DIR / "btc_prices.csv"
 START_DATE = "2021-10-01"
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger(__name__)
 
@@ -33,7 +32,7 @@ def fetch_btc(start: str = START_DATE) -> pd.DataFrame | None:
 
         df = ticker[["Close"]].reset_index()
         df.columns = ["date", "price"]
-        df["date"]  = pd.to_datetime(df["date"]).dt.date
+        df["date"] = pd.to_datetime(df["date"]).dt.date
         df["price"] = df["price"].round(2)
         df = df.dropna().sort_values("date").reset_index(drop=True)
 
@@ -41,14 +40,18 @@ def fetch_btc(start: str = START_DATE) -> pd.DataFrame | None:
         if len(df) > 1:
             daily_change = df["price"].pct_change().abs()
             if (daily_change > 0.5).any():
-                log.warning("Suspicious price spike detected (>50% in one day). Skipping update.")
+                log.warning(
+                    "Suspicious price spike detected (>50% in one day). Skipping update."
+                )
                 return None
 
         if (df["price"] <= 0).any():
             log.warning("Zero or negative BTC price detected. Skipping update.")
             return None
 
-        log.info(f"Fetched {len(df)} rows. Latest: {df['date'].iloc[-1]} @ ${df['price'].iloc[-1]:,.2f}")
+        log.info(
+            f"Fetched {len(df)} rows. Latest: {df['date'].iloc[-1]} @ ${df['price'].iloc[-1]:,.2f}"
+        )
         return df
 
     except Exception as e:

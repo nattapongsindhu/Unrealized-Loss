@@ -14,13 +14,13 @@ DATA_DIR = Path(__file__).parent.parent / "data"
 HEART_FILE = DATA_DIR / "heart_index.csv"
 
 RELATIONSHIP_START = date(2021, 10, 1)
-RELATIONSHIP_END   = date(2024, 8, 23)
-DECAY_RATE         = 0.003
+RELATIONSHIP_END = date(2024, 8, 23)
+DECAY_RATE = 0.003
 
 
-def generate_heart(start: date = RELATIONSHIP_START,
-                   end: date   = RELATIONSHIP_END,
-                   until: date = None) -> pd.DataFrame:
+def generate_heart(
+    start: date = RELATIONSHIP_START, end: date = RELATIONSHIP_END, until: date = None
+) -> pd.DataFrame:
 
     until = until or date.today()
     date_range = pd.date_range(start=str(start), end=str(until), freq="D")
@@ -29,9 +29,7 @@ def generate_heart(start: date = RELATIONSHIP_START,
     end_idx = (pd.Timestamp(end) - pd.Timestamp(start)).days
 
     values = np.where(
-        days <= end_idx,
-        100.0,
-        100.0 * np.exp(-DECAY_RATE * (days - end_idx))
+        days <= end_idx, 100.0, 100.0 * np.exp(-DECAY_RATE * (days - end_idx))
     )
 
     df = pd.DataFrame({"date": date_range.date, "heart_index": np.round(values, 4)})
