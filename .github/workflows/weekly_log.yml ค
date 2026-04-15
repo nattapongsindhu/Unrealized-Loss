@@ -1,0 +1,64 @@
+name: Weekly Log Generator
+
+on:
+  schedule:
+    - cron: "0 16 * * 0"   # Every Sunday 16:00 UTC (09:00 AM Los Angeles)
+  workflow_dispatch:         # Manual trigger for testing
+
+jobs:
+  create-log:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate weekly log file
+        run: |
+          WEEK=$(date +'%Y-W%V')
+          FILE="logs/${WEEK}.md"
+
+          if [ -f "$FILE" ]; then
+            echo "Log for ${WEEK} already exists — skipping."
+          else
+            cat > "$FILE" << EOF
+          # Weekly Log — ${WEEK}
+
+          > *One honest paragraph about where you are right now. Optional.*
+
+          ---
+
+          ## Wins
+          <!-- What actually worked this week — code, learning, or life -->
+          -
+
+          ## Learned
+          <!-- One concept, one tool, one insight -->
+          -
+
+          ## Struggled With
+          <!-- Honest. No one reads this but you. -->
+          -
+
+          ## Next
+          <!-- Max 3 things. Not 10. -->
+          - [ ]
+          - [ ]
+          - [ ]
+
+          ---
+
+          *Time to write this: should be under 5 minutes.*
+          EOF
+            echo "Created ${FILE}"
+          fi
+
+      - name: Commit and push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add logs/
+          git diff --cached --quiet || git commit -m "weekly log $(date +'%Y-W%V')"
+          git push
